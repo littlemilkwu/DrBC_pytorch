@@ -1,4 +1,5 @@
 import numpy as np
+import random
 import networkx as nx
 import torch
 RS = np.random.RandomState(11)
@@ -41,6 +42,12 @@ def gen_graph(NUM_MIN, NUM_MAX):
     node_num = np.random.randint(NUM_MIN, high=NUM_MAX)
     g = nx.powerlaw_cluster_graph(node_num, m=4, p=0.05)
     return g
+
+def shuffle_graph(train_g:list, train_dg:list, train_bc:list):
+    temp = list(zip(train_g, train_dg, train_bc))
+    random.shuffle(temp)
+    train_g, train_dg, train_bc = zip(*temp)
+    return train_g, train_dg, train_bc
 
 def preprocessing_data(train_g:list, train_dg:list, train_bc:list):
     X = np.zeros(shape=(0, 3))
