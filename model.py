@@ -32,7 +32,7 @@ class GCNConv(MessagePassing):
 
 
 class DrBC(Module):
-    def __init__(self, embedding_size=128, depth=5):
+    def __init__(self, embedding_size=128, depth=6):
         super(DrBC, self).__init__()
         self.embedding_size = embedding_size
         self.depth = depth
@@ -44,7 +44,7 @@ class DrBC(Module):
         # decoder
         self.mlp = Sequential(
             Linear(self.embedding_size, self.embedding_size // 2),
-            ReLU(),
+            LeakyReLU(),
             Linear(self.embedding_size // 2, 1)
         )
         
@@ -52,8 +52,8 @@ class DrBC(Module):
     def forward(self, X, edge_index):
         all_h = []
         h = self.linear0(X)
-        h = ReLU()(h)
-        h = t_F.normalize(h, p=2, dim=1) # l2-norm
+        h = LeakyReLU()(h)
+        # h = t_F.normalize(h, p=2, dim=1) # l2-norm
 
         # GRUCell
         # neighborhood aggregation
@@ -62,7 +62,7 @@ class DrBC(Module):
             # neighborhood aggregation
             h_aggre = self.gcn(h, edge_index)
             h = self.gru(h_aggre, h)
-            h = t_F.normalize(h, p=2, dim=-1) # l2-norm
+            # h = t_F.normalize(h, p=2, dim=-1) # l2-norm
             all_h.append(torch.unsqueeze(h, dim=0))
         # max pooling
         all_h = torch.cat(all_h, dim=0)
