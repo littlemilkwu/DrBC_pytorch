@@ -4,7 +4,7 @@ import itertools
 import random
 import networkx as nx
 import torch
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 import math
 import time
 from scipy import stats
