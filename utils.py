@@ -7,10 +7,11 @@ import torch
 from tqdm import tqdm
 import math
 import time
+from scipy import stats
 RS = np.random.RandomState(11)
 test1_path = 'hw1_data/Synthetic/5000/'
 testyt_path = 'hw1_data/youtube/'
-
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def read_test_data(test_file):
     global test1_path
@@ -176,6 +177,47 @@ def top_n_acc(ar1, ar2, n=1):
     n_num = int(len(ar1) * (n * 0.01))
     union_num = len(set(ar1[:n_num]) & set(ar2[:n_num]))
     return union_num / n_num
+
+def validate(model, v_data):
+    global device
+    model.eval()
+    total_acc1 = 0.
+    total_acc5 = 0.
+    total_acc10 = 0.
+    total_kendall = 0.
+    start_time = time.time()
+    for val_X, val_y, val_edge_index in v_data:
+        val_X, val_edge_index = val_X.to(device), val_edge_index.to(device)
+        
+        with torch.no_grad():
+            val_y_pred = model(val_X, val_edge_index)
+
+        val_y_pred = val_y_pred.cpu().detach().numpy()
+        val_y = val_y.detach().numpy()
+
+        pred_index = val_y_pred.argsort()[::-1]
+        true_index = val_y.argsort()[::-1]
+        
+        acc1 = top_n_acc(pred_index, true_index, n=1)
+        acc5 = top_n_acc(pred_index, true_index, n=5)
+        acc10 = top_n_acc(pred_index, true_index, n=10)
+        kendall_t, _ = stats.kendalltau(val_y_pred, val_y)
+
+        total_acc1 += acc1
+        total_acc5 += acc5
+        total_acc10 += acc10
+        total_kendall += kendall_t
+
+    total_acc1 /= len(v_data)
+    total_acc5 /= len(v_data)
+    total_acc10 /= len(v_data)
+    total_kendall /= len(v_data)
+    time_spent = time.time() - start_time
+    return round(total_acc1, 6), \
+        round(total_acc5, 6), \
+        round(total_acc10, 6), \
+        round(total_kendall, 6), \
+        round(time_spent, 2)
 
 
 if __name__ == "__main__":
