@@ -70,6 +70,7 @@ def betweenness_centrality_parallel(G, processes=None):
     )
 
     # Reduce the partial solutions
+    # print(bt_sc)
     bt_c = bt_sc[0]
     for bt in bt_sc[1:]:
         for n in bt:
@@ -185,7 +186,8 @@ if __name__ == "__main__":
     # g_list, dg_list, bc_list = prepare_test1(1)
     # preprocessing_data(g_list, dg_list, bc_list)
     start_time = time.time()
-    prepare_synthetic(1, (10000, 10001), parallel=True)
+    g_list, _, bc_list = prepare_synthetic(1, (1000, 1001), parallel=True)
+    print(bc_list[0])
     end_time = time.time()
     print(f'used times: {round(end_time - start_time, 1)} secs.')
     pass
